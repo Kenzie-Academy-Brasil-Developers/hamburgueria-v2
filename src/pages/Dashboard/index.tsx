@@ -3,66 +3,113 @@ import {
   CategoryProduct,
   ContainerUl,
   ContInformation,
+  ContInput,
+  HeaderContInput,
   HeaderStyle,
   Img,
+  ImgSearch,
   Picture,
   ProductPrice,
+  Result,
+  ResultCont,
+  ResultText,
   StyledProduct,
+  StyleInput,
+  CartCont,
   TitleProduct,
 } from "./styles";
 import Logo from "../../assets/Logo.png";
+import disable from "../../assets/button-disable.png";
 import Cart from "../../assets/cart.png";
 import search from "../../assets/search.png";
 import Logaut from "../../assets/logaut.png";
-import { useEffect, useState } from "react";
-import { api } from "../../services/api";
-
-interface Iproduct {
-  name: string;
-  category: string;
-  price: number;
-  id: number;
-  img: string;
-}
+import { useContext, useState } from "react";
+import { UserContext } from "../../Providers/UserContext";
+import { Link, Navigate } from "react-router-dom";
+import { CartContext } from "../../Providers/CartContext";
+import { ModalCart } from "../../Components/ModalCart";
 
 export const Dashboard = () => {
-  const [products, setProducts] = useState([] as Iproduct[] | null);
-  const [cartTotal, setCartTotal] = useState<number | string | []>(0);
-  const [currentSale, setCurrentSale] = useState([] as Iproduct[] | null);
+  const { loading, User } = useContext(UserContext);
+  const {
+    handleClick,
+    handleOpenModal,
+    filter,
+    setFilteredProducts,
+    filteredProducts,
+    currentSale,
+  } = useContext(CartContext);
+  const [Search, setSearch] = useState(false);
+  const [target, setTarget] = useState("");
 
-  useEffect(() => {
-    async function getList() {
-      try {
-        const response = await api.get(`products`);
-        setProducts(response.data);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    getList();
+  if (loading) {
+    return <h2>Carrregando...</h2>;
+  }
 
-    function total() {
-      const amount: number | any = currentSale?.reduce(
-        (accumulator, currentValue) => accumulator + Number(currentValue.price),
-        0
-      );
-      setCartTotal(amount.toFixed(2));
-    }
-    total();
-  }, [currentSale]);
+  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+    setFilteredProducts(target);
+    setSearch(false);
+    event.preventDefault();
+  };
 
-  return (
+  return User ? (
     <>
-      <HeaderStyle>
-        <img src={Logo} alt="Logo" />
-        <div>
-          <Img src={search} alt="search" />
-          <Img src={Cart} alt="Cart" />
-          <img src={Logaut} alt="Logaut" />
-        </div>
-      </HeaderStyle>
+      {Search ? (
+        <HeaderStyle>
+          <HeaderContInput onSubmit={submit}>
+            <StyleInput
+              placeholder="Digitar Pesquisa"
+              onChange={(event) => setTarget(event.target.value)}
+            />
+            <button>
+              <img src={disable} alt="" />
+            </button>
+          </HeaderContInput>
+        </HeaderStyle>
+      ) : (
+        <HeaderStyle>
+          <img src={Logo} alt="Logo" />
+          <div>
+            <ImgSearch
+              onClick={() => setSearch(true)}
+              src={search}
+              alt="search"
+            />
+
+            <ContInput onSubmit={submit}>
+              <StyleInput
+                placeholder="Digitar Pesquisa"
+                onChange={(event) => setTarget(event.target.value)}
+              />
+              <button>
+                <img src={disable} alt="" />
+              </button>
+            </ContInput>
+            <picture>
+              <CartCont>
+                <p>{currentSale.length}</p>
+              </CartCont>
+              <Img onClick={handleOpenModal} src={Cart} alt="Cart" />
+            </picture>
+
+            <Link to="/" onClick={() => localStorage.clear()}>
+              <img src={Logaut} alt="Logaut" />
+            </Link>
+          </div>
+        </HeaderStyle>
+      )}
+      {filteredProducts.length !== 0 ? (
+        <ResultCont>
+          <ResultText>
+            <Result>Resultados para: </Result>
+            {filteredProducts}
+          </ResultText>
+        </ResultCont>
+      ) : (
+        console.log()
+      )}
       <ContainerUl>
-        {products?.map<any>((product) => {
+        {filter?.map<any>((product) => (
           <StyledProduct key={product.id}>
             <Picture>
               <img src={product.img} alt={""} />
@@ -71,12 +118,16 @@ export const Dashboard = () => {
               <TitleProduct>{product.name}</TitleProduct>
               <CategoryProduct>{product.category}</CategoryProduct>
               <ProductPrice>R${product.price}</ProductPrice>
-              <ButtonAdd>Adicionar</ButtonAdd>
+              <ButtonAdd onClick={() => handleClick(product.id)}>
+                Adicionar
+              </ButtonAdd>
             </ContInformation>
-          </StyledProduct>;
-        })}
+          </StyledProduct>
+        ))}
       </ContainerUl>
-      ;
+      <ModalCart></ModalCart>;
     </>
+  ) : (
+    <Navigate to="/" />
   );
 };

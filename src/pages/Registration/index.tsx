@@ -8,13 +8,17 @@ import Group from "../../assets/Group135.png";
 import { Link } from "react-router-dom";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { RegisterSchema } from "./RegisterSchema";
+import { useContext } from "react";
+import { UserContext } from "../../Providers/UserContext";
+
+interface IRegisterData {
+  name: string;
+  email: string;
+  password: string;
+}
 
 export const Registration = () => {
-  interface IRegisterData {
-    name: string;
-    email: string;
-    password: string;
-  }
+  const { UserRegister, setUser } = useContext(UserContext);
 
   const {
     register,
@@ -28,6 +32,7 @@ export const Registration = () => {
 
   const submit = (data: IRegisterData) => {
     console.log(data);
+    UserRegister(data, setUser);
     reset();
   };
   return (

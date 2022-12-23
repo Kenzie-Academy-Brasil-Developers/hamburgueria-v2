@@ -14,6 +14,16 @@ export const GlobalContainer = styled.div`
     max-width: 380px;
   }
 
+  p {
+    color: var(--Negative);
+    position: relative;
+    bottom: 10px;
+    font-family: var(--Inter);
+    font-size: 14px;
+    font-weight: 400;
+    text-align: start;
+  }
+
   form {
     margin-top: 14px;
     padding: 19px 21px;
